@@ -1,4 +1,4 @@
-package org.trevin.json.model.reference.annotation;
+package org.trevin.json.annotation.reference.custom;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -8,5 +8,5 @@ import java.lang.annotation.Target;
 @Target({ ElementType.ANNOTATION_TYPE, ElementType.METHOD, ElementType.FIELD, ElementType.TYPE, ElementType.PARAMETER })
 @Retention(RetentionPolicy.RUNTIME)
 @com.fasterxml.jackson.annotation.JacksonAnnotation
-public @interface JsonReference {
+public @interface JsonCustomReference {
 }

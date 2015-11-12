@@ -1,4 +1,4 @@
-package org.trevin.json.key.annotation;
+package org.trevin.json.annotation.reference.custom.key;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

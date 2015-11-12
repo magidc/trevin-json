@@ -1,4 +1,4 @@
-package org.trevin.json.deserialization.cache;
+package org.trevin.json.deserialization.custom.cache;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -10,12 +10,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.trevin.json.model.reference.ClassKeyReference;
-import org.trevin.json.model.reference.helper.ReferenceHelper;
+import org.trevin.json.deserialization.custom.helper.ReferenceHelper;
+import org.trevin.json.deserialization.custom.key.ClassKeyReference;
 
 import com.fasterxml.jackson.databind.deser.SettableBeanProperty;
 
-public class ReferenceDeserializerCache {
+public class CustomReferenceDeserializerCache {
+    private final ReferenceHelper referenceHelper = new ReferenceHelper();
     private final Map<String, Collection<ClassKeyReference>> classKeyReferenceMap = new HashMap<String, Collection<ClassKeyReference>>();
     private final Map<EntityKey, Object> objectPool = new HashMap<EntityKey, Object>();
     private final Map<EntityKey, List<EntitySettableReference>> entitySettableReferenceMap = new HashMap<EntityKey, List<EntitySettableReference>>();
@@ -48,7 +49,7 @@ public class ReferenceDeserializerCache {
      * @throws IOException
      */
     public Object checkInCache(EntityBean entityBean) throws IOException {
-	Object bean = entityBean.getBean();
+	Object bean = entityBean.getEntity();
 	EntityKey entityKey = new EntityKey(getEntityKeysHashCode(bean), bean.getClass().getName());
 
 	// Adding a complete bean to the pool and loading it in previously found
@@ -92,7 +93,7 @@ public class ReferenceDeserializerCache {
 	if (entity instanceof String)
 	    return entity.hashCode();
 	if (!classKeyReferenceMap.containsKey(entity.getClass().getName()))
-	    ReferenceHelper.addClassKeyReferences(entity.getClass(), classKeyReferenceMap);
+	    referenceHelper.addClassKeyReferences(entity.getClass(), classKeyReferenceMap);
 
 	int code = 0;
 

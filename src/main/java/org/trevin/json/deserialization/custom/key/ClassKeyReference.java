@@ -1,4 +1,4 @@
-package org.trevin.json.model.reference;
+package org.trevin.json.deserialization.custom.key;
 
 import java.lang.reflect.Method;
 

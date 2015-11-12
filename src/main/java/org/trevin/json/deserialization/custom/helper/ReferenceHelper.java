@@ -1,4 +1,4 @@
-package org.trevin.json.model.reference.helper;
+package org.trevin.json.deserialization.custom.helper;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -8,14 +8,14 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
-import org.trevin.json.key.annotation.JsonEntityKey;
-import org.trevin.json.model.reference.ClassKeyReference;
+import org.trevin.json.annotation.reference.custom.key.JsonEntityKey;
+import org.trevin.json.deserialization.custom.key.ClassKeyReference;
 
 public class ReferenceHelper {
 
     public static final String IS_REFERENCE_FIELD_NAME = "jref";
 
-    public static List<ClassKeyReference> findKeyReferences(Class<?> classObject) {
+    public List<ClassKeyReference> findKeyReferences(Class<?> classObject) {
 	List<ClassKeyReference> classKeyReferenceList = new ArrayList<ClassKeyReference>();
 
 	for (Field field : classObject.getDeclaredFields()) {
@@ -29,7 +29,7 @@ public class ReferenceHelper {
 	return classKeyReferenceList;
     }
 
-    private static Method findGetterMethod(Class<?> classObject, Field field) {
+    private Method findGetterMethod(Class<?> classObject, Field field) {
 	String methodName = "get" + StringUtils.capitalize(field.getName());
 	Method foundMethod = null;
 	for (Method method : classObject.getMethods()) {
@@ -42,10 +42,9 @@ public class ReferenceHelper {
 	return foundMethod;
     }
 
-    public static void addClassKeyReferences(Class<?> clazz,
-	    Map<String, Collection<ClassKeyReference>> classKeyReferenceMap) {
+    public void addClassKeyReferences(Class<?> clazz, Map<String, Collection<ClassKeyReference>> classKeyReferenceMap) {
 	if (!classKeyReferenceMap.containsKey(clazz.getName())) {
-	    classKeyReferenceMap.put(clazz.getName(), ReferenceHelper.findKeyReferences(clazz));
+	    classKeyReferenceMap.put(clazz.getName(), findKeyReferences(clazz));
 	}
     }
 

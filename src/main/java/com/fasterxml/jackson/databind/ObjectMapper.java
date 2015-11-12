@@ -605,7 +605,7 @@ public class ObjectMapper extends ObjectCodec implements Versioned, java.io.Seri
 	/*
 	 * Adding initialization for
 	 */
-	TrevinObjectMapperInitializer.loadTrevinModule(this);
+	new TrevinObjectMapperInitializer().loadTrevinModule(this);
     }
 
     /**
@@ -3895,4 +3895,5 @@ public class ObjectMapper extends ObjectCodec implements Versioned, java.io.Seri
 	    }
 	}
     }
+
 }

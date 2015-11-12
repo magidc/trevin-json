@@ -17,22 +17,22 @@ public class TrevinObjectMapper extends ObjectMapper {
 
     public TrevinObjectMapper() {
 	super();
-	TrevinObjectMapperInitializer.loadTrevinModule(this);
+	new TrevinObjectMapperInitializer().loadTrevinModule(this);
     }
 
     public TrevinObjectMapper(JsonFactory jf, DefaultSerializerProvider sp, DefaultDeserializationContext dc) {
 	super(jf, sp, dc);
-	TrevinObjectMapperInitializer.loadTrevinModule(this);
+	new TrevinObjectMapperInitializer().loadTrevinModule(this);
     }
 
     public TrevinObjectMapper(JsonFactory jf) {
 	super(jf);
-	TrevinObjectMapperInitializer.loadTrevinModule(this);
+	new TrevinObjectMapperInitializer().loadTrevinModule(this);
     }
 
     public TrevinObjectMapper(ObjectMapper src) {
 	super(src);
-	TrevinObjectMapperInitializer.loadTrevinModule(this);
+	new TrevinObjectMapperInitializer().loadTrevinModule(this);
     }
 
 }

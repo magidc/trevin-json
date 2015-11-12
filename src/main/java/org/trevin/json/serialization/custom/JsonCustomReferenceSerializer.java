@@ -1,12 +1,12 @@
-package org.trevin.json.serialization;
+package org.trevin.json.serialization.custom;
 
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.trevin.json.model.reference.ClassKeyReference;
-import org.trevin.json.model.reference.helper.ReferenceHelper;
+import org.trevin.json.deserialization.custom.helper.ReferenceHelper;
+import org.trevin.json.deserialization.custom.key.ClassKeyReference;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -14,8 +14,9 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 
-public class JsonReferenceSerializer extends JsonSerializer<Object> {
+public class JsonCustomReferenceSerializer extends JsonSerializer<Object> {
     private static final Map<String, Collection<ClassKeyReference>> classKeyReferenceMap = new HashMap<String, Collection<ClassKeyReference>>();
+    private final ReferenceHelper referenceHelper = new ReferenceHelper();
 
     @Override
     public void serialize(Object entity, JsonGenerator jsonGenerator, SerializerProvider provider)
@@ -41,7 +42,7 @@ public class JsonReferenceSerializer extends JsonSerializer<Object> {
 	    return;
 
 	if (!classKeyReferenceMap.containsKey(entity.getClass().getName()))
-	    ReferenceHelper.addClassKeyReferences(entity.getClass(), classKeyReferenceMap);
+	    referenceHelper.addClassKeyReferences(entity.getClass(), classKeyReferenceMap);
 	if (classKeyReferenceMap.get(entity.getClass().getName()).isEmpty()) {
 	    jsonGenerator.writeObjectField(prefix, entity);
 	    return;

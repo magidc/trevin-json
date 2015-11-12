@@ -5,8 +5,9 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.trevin.json.model.reference.annotation.JsonReference;
-import org.trevin.json.serialization.JsonReferenceSerializer;
+import org.trevin.json.annotation.reference.custom.JsonCustomReference;
+import org.trevin.json.deserialization.custom.helper.ReferenceHelper;
+import org.trevin.json.serialization.custom.JsonCustomReferenceSerializer;
 
 import com.fasterxml.jackson.annotation.JacksonAnnotationsInside;
 import com.fasterxml.jackson.annotation.JacksonInject;
@@ -76,6 +77,7 @@ import com.fasterxml.jackson.databind.util.SimpleBeanPropertyDefinition;
  */
 public class JacksonAnnotationIntrospector extends AnnotationIntrospector implements java.io.Serializable {
     private static final long serialVersionUID = 1L;
+    private ReferenceHelper referenceHelper = new ReferenceHelper();
 
     public JacksonAnnotationIntrospector() {
     }
@@ -460,8 +462,8 @@ public class JacksonAnnotationIntrospector extends AnnotationIntrospector implem
 
     @Override
     public Object findSerializer(Annotated a) {
-	if (_findAnnotation(a, JsonReference.class) != null)
-	    return JsonReferenceSerializer.class;
+	if (_findAnnotation(a, JsonCustomReference.class) != null)
+	    return JsonCustomReferenceSerializer.class;
 
 	JsonSerialize ann = _findAnnotation(a, JsonSerialize.class);
 	if (ann != null) {
@@ -488,8 +490,8 @@ public class JacksonAnnotationIntrospector extends AnnotationIntrospector implem
 
     @Override
     public Object findKeySerializer(Annotated a) {
-	if (_findAnnotation(a, JsonReference.class) != null)
-	    return JsonReferenceSerializer.class;
+	if (_findAnnotation(a, JsonCustomReference.class) != null)
+	    return JsonCustomReferenceSerializer.class;
 	JsonSerialize ann = _findAnnotation(a, JsonSerialize.class);
 	if (ann != null) {
 	    @SuppressWarnings("rawtypes")
@@ -503,8 +505,8 @@ public class JacksonAnnotationIntrospector extends AnnotationIntrospector implem
 
     @Override
     public Object findContentSerializer(Annotated a) {
-	if (_findAnnotation(a, JsonReference.class) != null)
-	    return JsonReferenceSerializer.class;
+	if (_findAnnotation(a, JsonCustomReference.class) != null)
+	    return JsonCustomReferenceSerializer.class;
 	JsonSerialize ann = _findAnnotation(a, JsonSerialize.class);
 	if (ann != null) {
 	    @SuppressWarnings("rawtypes")
