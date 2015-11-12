@@ -1,13 +1,9 @@
 package org.trevin.json.deserialization;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Collection;
-import java.util.Map;
 
-import org.trevin.json.model.proxy.ObjectProxy;
-import org.trevin.json.model.proxy.ProxyFacade;
-import org.trevin.json.model.reference.ClassKeyReference;
+import org.trevin.json.deserialization.cache.EntityBean;
+import org.trevin.json.deserialization.cache.ReferenceDeserializerCache;
 import org.trevin.json.model.reference.helper.ReferenceHelper;
 
 import com.fasterxml.jackson.core.JsonParser;
@@ -17,70 +13,23 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.deser.BeanDeserializer;
 import com.fasterxml.jackson.databind.deser.SettableBeanProperty;
 
-import net.sf.cglib.proxy.Factory;
-
 public class JsonReferenceDeserializer extends BeanDeserializer {
     private static final long serialVersionUID = 4396351173607933971L;
-    private final Map<Integer, Factory> proxyEntityFactoryPool;
-    private final Map<String, Collection<ClassKeyReference>> classKeyReferenceMap;
-    private ProxyFacade proxyFacade;
-    private boolean isReference;
+    private final ReferenceDeserializerCache referenceDeserializerCache;
 
     public JsonReferenceDeserializer(BeanDeserializer defaultDeserializer,
-	    Map<Integer, Factory> proxyJSONModelEntityFactoryPool,
-	    Map<String, Collection<ClassKeyReference>> classKeyReferenceMap, ProxyFacade proxyFacade) {
+	    ReferenceDeserializerCache referenceDeserializerCache) {
 	super(defaultDeserializer, defaultDeserializer.getObjectIdReader());
-	this.proxyEntityFactoryPool = proxyJSONModelEntityFactoryPool;
-	this.classKeyReferenceMap = classKeyReferenceMap;
-	this.proxyFacade = proxyFacade;
+	this.referenceDeserializerCache = referenceDeserializerCache;
     }
 
     @Override
     public Object deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
-	Object entity = referenceDeserialize(jsonParser, deserializationContext);
 
-	int keyHashCode = getKeyHashCode(entity);
-	Factory factory;
+	return referenceDeserializerCache.checkInCache(referenceDeserialize(jsonParser, deserializationContext));
 
-	if (proxyEntityFactoryPool.containsKey(keyHashCode)) {
-	    factory = proxyEntityFactoryPool.get(keyHashCode);
-	    ObjectProxy objectProxy = ((ObjectProxy) factory.getCallback(0));
-	    if (objectProxy.getCoreObject() != null && !isReference)
-		objectProxy.setCoreObject(entity);
-
-	} else {
-	    factory = proxyFacade.getProxyFactory(entity);
-	    proxyEntityFactoryPool.put(keyHashCode, factory);
-	}
-	isReference = false;
-	return factory;
     }
 
-    private int getKeyHashCode(Object entity) throws IOException {
-
-	if (!classKeyReferenceMap.containsKey(entity.getClass().getName()))
-	    ReferenceHelper.addClassKeyReferences(entity.getClass(), classKeyReferenceMap);
-
-	int code = entity.getClass().getName().hashCode();
-
-	for (ClassKeyReference classKeyReference : classKeyReferenceMap.get(entity.getClass().getName())) {
-	    try {
-		Object keyValue = classKeyReference.getGetterMethod().invoke(entity);
-		if (keyValue == null)
-		    continue;
-		code += getKeyHashCode(keyValue);
-
-	    } catch (IllegalAccessException e) {
-		throw new IOException(e);
-	    } catch (IllegalArgumentException e) {
-		throw new IOException(e);
-	    } catch (InvocationTargetException e) {
-		throw new IOException(e);
-	    }
-	}
-
-	return code;
-    }
     // Overwriting FasterXML Jackson implementations
     // ------------------------------------------------------------
     /*
@@ -89,7 +38,7 @@ public class JsonReferenceDeserializer extends BeanDeserializer {
      * /**********************************************************
      */
 
-    public Object referenceDeserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+    private EntityBean referenceDeserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
 	// common case first
 	if (p.isExpectedStartObjectToken()) {
 	    if (_vanillaProcessing) {
@@ -97,32 +46,32 @@ public class JsonReferenceDeserializer extends BeanDeserializer {
 	    }
 	    p.nextToken();
 	    if (_objectIdReader != null) {
-		return deserializeWithObjectId(p, ctxt);
+		return new EntityBean(deserializeWithObjectId(p, ctxt));
 	    }
-	    return deserializeFromObject(p, ctxt);
+	    return new EntityBean(deserializeFromObject(p, ctxt));
 	}
 	JsonToken t = p.getCurrentToken();
 	return referenceDeserializeOther(p, ctxt, t);
     }
 
-    private Object referenceDeserializeOther(JsonParser p, DeserializationContext ctxt, JsonToken t)
+    private EntityBean referenceDeserializeOther(JsonParser p, DeserializationContext ctxt, JsonToken t)
 	    throws IOException {
 	// and then others, generally requiring use of @JsonCreator
 	switch (t) {
 	case VALUE_STRING:
-	    return deserializeFromString(p, ctxt);
+	    return new EntityBean(deserializeFromString(p, ctxt));
 	case VALUE_NUMBER_INT:
-	    return deserializeFromNumber(p, ctxt);
+	    return new EntityBean(deserializeFromNumber(p, ctxt));
 	case VALUE_NUMBER_FLOAT:
-	    return deserializeFromDouble(p, ctxt);
+	    return new EntityBean(deserializeFromDouble(p, ctxt));
 	case VALUE_EMBEDDED_OBJECT:
-	    return deserializeFromEmbedded(p, ctxt);
+	    return new EntityBean(deserializeFromEmbedded(p, ctxt));
 	case VALUE_TRUE:
 	case VALUE_FALSE:
-	    return deserializeFromBoolean(p, ctxt);
+	    return new EntityBean(deserializeFromBoolean(p, ctxt));
 	case START_ARRAY:
 	    // these only work if there's a (delegating) creator...
-	    return deserializeFromArray(p, ctxt);
+	    return new EntityBean(deserializeFromArray(p, ctxt));
 	case FIELD_NAME:
 	case END_OBJECT: // added to resolve [JACKSON-319], possible related
 			 // issues
@@ -130,9 +79,9 @@ public class JsonReferenceDeserializer extends BeanDeserializer {
 		return vanillaDeserialize(p, ctxt, t);
 	    }
 	    if (_objectIdReader != null) {
-		return deserializeWithObjectId(p, ctxt);
+		return new EntityBean(deserializeWithObjectId(p, ctxt));
 	    }
-	    return deserializeFromObject(p, ctxt);
+	    return new EntityBean(deserializeFromObject(p, ctxt));
 	default:
 	    throw ctxt.mappingException(handledType());
 	}
@@ -148,12 +97,16 @@ public class JsonReferenceDeserializer extends BeanDeserializer {
      * Streamlined version that is only used when no "special" features are
      * enabled.
      */
-    private final Object vanillaDeserialize(JsonParser p, DeserializationContext ctxt, JsonToken t) throws IOException {
+    private final EntityBean vanillaDeserialize(JsonParser p, DeserializationContext ctxt, JsonToken t)
+	    throws IOException {
 	final Object bean = _valueInstantiator.createUsingDefault(ctxt);
 	// [databind#631]: Assign current value, to be accessible by custom
 	// serializers
 	p.setCurrentValue(bean);
+	boolean isReference = false;
+	referenceDeserializerCache.pushBean(bean);
 	if (p.hasTokenId(JsonTokenId.ID_FIELD_NAME)) {
+
 	    String propName = p.getCurrentName();
 	    do {
 		p.nextToken();
@@ -164,7 +117,9 @@ public class JsonReferenceDeserializer extends BeanDeserializer {
 		}
 		if (prop != null) { // normal case
 		    try {
+			referenceDeserializerCache.pushSettableBeanProperty(prop);
 			prop.deserializeAndSet(p, ctxt, bean);
+			referenceDeserializerCache.popSettableBeanProperty();
 		    } catch (Exception e) {
 			wrapAndThrow(e, bean, propName, ctxt);
 		    }
@@ -174,7 +129,9 @@ public class JsonReferenceDeserializer extends BeanDeserializer {
 		handleUnknownVanilla(p, ctxt, bean, propName);
 	    } while ((propName = p.nextFieldName()) != null);
 	}
-	return bean;
+	referenceDeserializerCache.popBean();
+
+	return new EntityBean(isReference, bean);
     }
 
 }

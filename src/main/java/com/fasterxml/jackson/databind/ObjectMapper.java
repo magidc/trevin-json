@@ -3780,6 +3780,7 @@ public class ObjectMapper extends ObjectCodec implements Versioned, java.io.Seri
 	    }
 	    // Need to consume the token too
 	    jp.clearCurrentToken();
+
 	    return result;
 	} finally {
 	    try {
@@ -3787,6 +3788,7 @@ public class ObjectMapper extends ObjectCodec implements Versioned, java.io.Seri
 	    } catch (IOException ioe) {
 	    }
 	}
+
     }
 
     /**

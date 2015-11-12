@@ -1,7 +1,6 @@
 package org.trevin.json.mapper;
 
 import org.trevin.json.deserialization.JsonReferenceDeserializerModifier;
-import org.trevin.json.model.proxy.ProxyFacade;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -15,7 +14,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 public class TrevinObjectMapperInitializer {
     public static void loadTrevinModule(ObjectMapper objectMapper) {
 	SimpleModule simpleModule = new SimpleModule();
-	simpleModule.setDeserializerModifier(new JsonReferenceDeserializerModifier(new ProxyFacade()));
+	simpleModule.setDeserializerModifier(new JsonReferenceDeserializerModifier());
 	objectMapper.registerModule(simpleModule);
     }
 }
